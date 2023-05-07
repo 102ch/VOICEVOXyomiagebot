@@ -1,0 +1,7 @@
+version: "2.0"
+services:
+  bot:
+    tty: true
+    build: "src"
+    env_file: ./.env
+    mem_limit: 4g

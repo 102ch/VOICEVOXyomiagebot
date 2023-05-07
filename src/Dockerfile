@@ -3,7 +3,7 @@ USER root
 
 RUN apt update
 
-RUN apt install -y python3 wget unzip pip
+RUN apt install -y python3 wget unzip pip ffmpeg
 
 ENV LANG ja_JP.UTF-8
 ENV LANGUAGE ja_JP:ja

@@ -1,0 +1,6 @@
+version: "2.0"
+services:
+  bot:
+    image: ghcr.io/102ch/voicevoxyomiage:latest
+    env_file: ./.env
+    mem_limit: 4g

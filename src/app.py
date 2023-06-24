@@ -18,8 +18,8 @@ metas = str(METAS)
 namelist = {}
 metalist = []
 
-stylist2 = []
-stylist3 = []
+voice_styles = []
+voice_style_dict = []
 idlist = {}
 fixedlist = []
 
@@ -132,7 +132,7 @@ async def text_check(text: str, user_name: str) -> str:
         raise Exception("再生時間が長すぎるよ")
     return text, filename
 
-async def listmk():
+async def load_metas():
     # METAS[]の要素のmeta[] の styleプロパティを取得
     for meta in METAS:
         metalist.append(meta.name)
@@ -142,15 +142,15 @@ async def listmk():
             style_list.append(style.name + "  " + str(style.id))
             style_dic.setdefault(style.id, style.name)
             idlist[style.id] = meta.name + '  ' +style.name
-        stylist2.append(copy.deepcopy(style_list))
-        stylist3.append(copy.deepcopy(style_dic))
+        voice_styles.append(copy.deepcopy(style_list))
+        voice_style_dict.append(copy.deepcopy(style_dic))
 
 @bot.event
 async def on_ready():
     global namelist 
     #await client.get_channel(channel).connect()
     await tree.sync()   
-    await listmk()
+    await load_metas()
     with open('school.binaryfile', 'rb') as web:
         namelist = pickle.load(web)
     print('connected')
@@ -188,8 +188,6 @@ async def on_message(message: discord.Message):
     # コマンド側へメッセージ内容を渡す
     await bot.process_commands(message)
 
-    
-
 @tree.command(name="join", description="ボイスチャンネルに参加するよ")
 async def join(interaction: Interaction):
     await interaction.response.defer()
@@ -214,47 +212,46 @@ async def dc(interaction: Interaction):
     else:
         await interaction.followup.send('ボイスチャンネルに参加していません')
 
-class CharacterName(ui.Button):
-    def __init__(self, name: str, chanum: int):
+
+class CharacterSelectButton(ui.Button):
+    def __init__(self, name: str, num: int):
         super().__init__(label=name)
-        self.chanum = chanum
+        self.num = num
         self.name = name
-    
+
     async def callback(self, interaction:Interaction):
         view = ui.View()
-        for key, value in stylist3[self.chanum].items(): #key = id value = name
-            view.add_item(Style(value, key, self.name))
+        for key, value in voice_style_dict[self.num].items(): #key = style.id, value = style.name
+            view.add_item(VoiceStyleSelectButton(value, key, self.name))
         await interaction.response.edit_message(content=f'{self.label}', view=view)
 
-class Style(ui.Button):
-    def __init__(self, name: str, value: int, chaname:str):
-        super().__init__(label=name)
-        self.value=value
-        self.chaname=chaname 
+# ノーマル とか ツンツン とか あまあま とか
+class VoiceStyleSelectButton(ui.Button):
+    def __init__(self, style_name: str, style_id: int, chaname:str):
+        super().__init__(label=style_name)
+        self.style=style_id
+        self.character_name=chaname
 
     async def callback(self, interaction: Interaction):
-        namelist[interaction.user.name] = self.value
-        if idlist[self.value] != None:
+        namelist[interaction.user.name] = self.style
+        if idlist[self.style] != None:
             with open('school.binaryfile', 'wb') as web:
                 pickle.dump(namelist, web)
-            await interaction.response.edit_message(content=f'{interaction.user.name}を{self.chaname}の{self.label}に変更しました', view=None)
+            await interaction.response.edit_message(content=f'{interaction.user.name}を{self.character_name}の{self.label}に変更しました', view=None)
 
 @tree.command(name="cha", description="キャラクターを変更するよ！")
 async def character_select_command(interaction: discord.Interaction):
-    view = ui.View()
-    i = 0
-    for txt in metalist:
-        view.add_item(CharacterName(txt, i))
-        i=i+1
-    await interaction.response.send_message("以下のボタンをクリックしてください：", view=view, ephemeral=True)
+    character_select_buttons = ui.View()
+    for i, txt in enumerate(metalist):
+        character_select_buttons.add_item(CharacterSelectButton(txt, i))
+    await interaction.response.send_message("以下のボタンをクリックしてください：", view=character_select_buttons, ephemeral=True)
 
 @tree.command(name="list", description="キャラクターのリストを表示するよ！")
-async def list(interaction: discord.Interaction):
+async def display_character_list_command(interaction: discord.Interaction):
     await interaction.response.defer()
-    #await interaction.followup.send(json_str)
     embed=discord.Embed(title="キャラリスト")
     for i in range(len(metalist)):
-        embed.add_field(name=metalist[i], value=stylist2[i],inline = False)
+        embed.add_field(name=metalist[i], value=voice_styles[i], inline = False)
     await interaction.followup.send(embed=embed)
 
 @tree.command(name="now", description="今のキャラクターを表示するよ！")
@@ -282,7 +279,6 @@ async def sel(interaction:Interaction):
 async def main():
     # start the client
     async with bot:
-
         await bot.start(TOKEN)
 
 asyncio.run(main())

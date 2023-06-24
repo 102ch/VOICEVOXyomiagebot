@@ -17,13 +17,11 @@ import os
 metas = str(METAS)
 namelist = {}
 metalist = []
-stylist1 = []
+
 stylist2 = []
 stylist3 = []
-stylist4 = {}
 idlist = {}
 fixedlist = []
-metaar = ""
 
 #speaker_id = 3
 
@@ -53,7 +51,8 @@ currentChannel = None
 
 def enqueue(voice_client: discord.VoiceClient, guild: discord.guild, source, filename: str):
     queue = queue_dict[guild.id]
-    queue.append([source, filename])
+    item = [source, filename]
+    queue.append(item)
     if not voice_client:
         return
     if not voice_client.is_playing():
@@ -63,24 +62,24 @@ def enqueue(voice_client: discord.VoiceClient, guild: discord.guild, source, fil
 def play(voice_client: discord.VoiceClient, queue: deque):
     if not queue or voice_client.is_playing():
         return
-    source = queue.popleft()
-    # os.remove(source[1])
-    voice_client.play(source[0], after=lambda e: play(voice_client, queue))
+    # item = [source, filename]
+    item = queue.popleft()
+    voice_client.play(item[0], after=lambda e: play(voice_client, queue))
 
-def replaceStamp(text: str) -> str:
+def replace_stamp(text: str) -> str:
     text = re.sub('<:([^:]*):.*>', '\\1', text)
     return text
 
-async def replaceUserName(text: str) -> str:
+async def replace_user_name(text: str) -> str:
     for word in text.split():
         if not mention.match(word):
             continue
         print(word)
-        userId = re.sub('<@([^>]*)>', '\\1', word)
-        print(userId)
-        userName = str(await bot.fetch_user(userId))
-        userName = re.sub('#.*', '', userName)
-        text = text.replace(word, '@' + userName)
+        user_id = re.sub('<@([^>]*)>', '\\1', word)
+        print(user_id)
+        user_name = str(await bot.fetch_user(user_id))
+        user_name = re.sub('#.*', '', user_name)
+        text = text.replace(word, '@' + user_name)
     return text
 
 async def jtalk(t) -> str:
@@ -114,9 +113,9 @@ async def text_check(text: str, user_name: str) -> str:
     if len(text) > 100:
         raise Exception("文字数が長すぎるよ")
     if stamp.search(text):
-        text = replaceStamp(text)
+        text = replace_stamp(text)
     if mention.search(text):
-        text = await replaceUserName(text)
+        text = await replace_user_name(text)
     #text = re.sub('#.*', '', str(user_name)) + ' ' + text
     text = re.sub('http.*', '', text)
     match = re.findall(r'[a-zA-Z0-9ぁ-んァ-ン一-龥]', text)
@@ -134,19 +133,17 @@ async def text_check(text: str, user_name: str) -> str:
     return text, filename
 
 async def listmk():
-    global metaar
+    # METAS[]の要素のmeta[] の styleプロパティを取得
     for meta in METAS:
         metalist.append(meta.name)
+        style_list = []
+        style_dic = {}
         for style in meta.styles:
-            stylist1.append(style.name + "  " + str(style.id))
-            stylist4.setdefault(style.id, style.name)
+            style_list.append(style.name + "  " + str(style.id))
+            style_dic.setdefault(style.id, style.name)
             idlist[style.id] = meta.name + '  ' +style.name
-        st = copy.copy(stylist1)
-        sts = copy.copy(stylist4)
-        stylist2.append(st)
-        stylist3.append(sts)
-        stylist1.clear()
-        stylist4.clear()
+        stylist2.append(copy.deepcopy(style_list))
+        stylist3.append(copy.deepcopy(style_dic))
 
 @bot.event
 async def on_ready():
@@ -217,8 +214,8 @@ async def dc(interaction: Interaction):
     else:
         await interaction.followup.send('ボイスチャンネルに参加していません')
 
-class Charaname(ui.Button):
-    def __init__(self, name: str,chanum: int):
+class CharacterName(ui.Button):
+    def __init__(self, name: str, chanum: int):
         super().__init__(label=name)
         self.chanum = chanum
         self.name = name
@@ -226,10 +223,10 @@ class Charaname(ui.Button):
     async def callback(self, interaction:Interaction):
         view = ui.View()
         for key, value in stylist3[self.chanum].items(): #key = id value = name
-            view.add_item(style(value, key, self.name))
+            view.add_item(Style(value, key, self.name))
         await interaction.response.edit_message(content=f'{self.label}', view=view)
 
-class style(ui.Button):
+class Style(ui.Button):
     def __init__(self, name: str, value: int, chaname:str):
         super().__init__(label=name)
         self.value=value
@@ -243,11 +240,11 @@ class style(ui.Button):
             await interaction.response.edit_message(content=f'{interaction.user.name}を{self.chaname}の{self.label}に変更しました', view=None)
 
 @tree.command(name="cha", description="キャラクターを変更するよ！")
-async def cha(interaction: discord.Interaction):
+async def character_select_command(interaction: discord.Interaction):
     view = ui.View()
     i = 0
     for txt in metalist:
-        view.add_item(Charaname(txt, i))
+        view.add_item(CharacterName(txt, i))
         i=i+1
     await interaction.response.send_message("以下のボタンをクリックしてください：", view=view, ephemeral=True)
 
@@ -255,7 +252,7 @@ async def cha(interaction: discord.Interaction):
 async def list(interaction: discord.Interaction):
     await interaction.response.defer()
     #await interaction.followup.send(json_str)
-    embed=discord.Embed(title="キャラリスト")  #metaar
+    embed=discord.Embed(title="キャラリスト")
     for i in range(len(metalist)):
         embed.add_field(name=metalist[i], value=stylist2[i],inline = False)
     await interaction.followup.send(embed=embed)
@@ -268,7 +265,7 @@ async def now(interaction: discord.Interaction):
     await interaction.followup.send(str(idlist[namelist[interaction.user.name]])+"だよ！")
 #client.run(TOKEN)
 
-class usersel(ui.UserSelect):
+class UserSelect(ui.UserSelect):
     def __init__(self):
         super().__init__()
 

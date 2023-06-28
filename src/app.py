@@ -227,6 +227,21 @@ async def dc(interaction: Interaction):
     else:
         await interaction.followup.send('ボイスチャンネルに参加していません')
 
+class nextbutton(ui.Button):
+    def __init__(self, name: str, chanum: int):
+        super().__init__(label=name)
+        self.chanum=chanum
+        self.name=name
+
+    async def callback(self, interaction:Interaction):
+        view=ui.View()
+        i=0
+        for txt in metalist:
+            if i >= 25:
+                view.add_item(Charaname(txt, i))
+            i+=1
+        await interaction.response.edit_message(view=view)
+
 class Charaname(ui.Button):
     def __init__(self, name: str,chanum: int):
         super().__init__(label=name)
@@ -257,8 +272,11 @@ async def cha(interaction: discord.Interaction):
     view = ui.View()
     i = 0
     for txt in metalist:
-        view.add_item(Charaname(txt, i))
-        i=i+1
+        if i < 25:
+            view.add_item(Charaname(txt, i))
+        else:
+            view.add_item(nextbutton("next", i))
+        i+=1
     await interaction.response.send_message("以下のボタンをクリックしてください：", view=view, ephemeral=True)
 
 @tree.command(name="list", description="キャラクターのリストを表示するよ！")

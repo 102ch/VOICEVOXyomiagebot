@@ -237,7 +237,7 @@ class nextbutton(ui.Button):
         view=ui.View()
         i=0
         for txt in metalist:
-            if i >= 25:
+            if i >= 23:
                 view.add_item(Charaname(txt, i))
             i+=1
         await interaction.response.edit_message(view=view)
@@ -272,7 +272,7 @@ async def cha(interaction: discord.Interaction):
     view = ui.View()
     i = 0
     for txt in metalist:
-        if i < 24:
+        if i < 23:
             view.add_item(Charaname(txt, i))
         else:
             view.add_item(nextbutton("next", i))

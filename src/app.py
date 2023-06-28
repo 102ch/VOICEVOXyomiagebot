@@ -191,7 +191,13 @@ async def on_message(message: discord.Message):
     # コマンド側へメッセージ内容を渡す
     await bot.process_commands(message)
 
-    
+@bot.event
+async def on_voice_state_update(member: discord.Member, before:discord.VoiceState, after:discord.VoiceState):
+    if before.channel and not after.channel and len(before.channel.members) == 1:
+        client = member.guild.voice_client
+        if client:
+            await client.disconnect()
+            await before.channel.send('ボイスチャンネルからログアウトしました')
 
 @tree.command(name="join", description="ボイスチャンネルに参加するよ")
 async def join(interaction: Interaction):

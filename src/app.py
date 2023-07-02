@@ -315,9 +315,13 @@ async def list(interaction: discord.Interaction):
     await interaction.response.defer()
     #await interaction.followup.send(json_str)
     embed=discord.Embed(title="キャラリスト")  #metaar
+    embed2=discord.Embed(title="キャラリスト2")
     for i in range(len(metalist)):
-        embed.add_field(name=metalist[i], value=stylist2[i],inline = False)
-    await interaction.followup.send(embed=embed)
+        if i < 25:
+            embed.add_field(name=metalist[i], value=stylist2[i],inline = False)
+        elif i < 50:
+            embed2.add_field(name=metalist[i], value=stylist2[i],inline = False)
+    await interaction.followup.send(embeds=[embed, embed2])
 
 @tree.command(name="now", description="今のキャラクターを表示するよ！")
 async def now(interaction: discord.Interaction):

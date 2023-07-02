@@ -236,11 +236,30 @@ class nextbutton(ui.Button):
     async def callback(self, interaction:Interaction):
         view=ui.View()
         i=0
+        view.add_item(prevbutton("prev", i))
         for txt in metalist:
-            if i >= 23:
+            if i >= 24:                             #change
                 view.add_item(Charaname(txt, i))
             i+=1
         await interaction.response.edit_message(view=view)
+
+class prevbutton(ui.Button):
+    def __init__(self, name: str, chanum: int):
+        super().__init__(label=name)
+        self.chanum=chanum
+        self.name=name
+
+    async def callback(self, interaction:Interaction):
+        view=ui.View()
+        i=0
+        for txt in metalist:
+            if i < 24:
+                view.add_item(Charaname(txt, i))
+            elif i==24:
+                view.add_item(nextbutton("next", i))
+            i=i+1
+        await interaction.response.edit_message(view=view)
+
 
 class Charaname(ui.Button):
     def __init__(self, name: str,chanum: int):
@@ -265,8 +284,20 @@ class style(ui.Button):
         if idlist[self.value] != None:
             with open('school.binaryfile', 'wb') as web:
                 pickle.dump(namelist, web)
-            await interaction.response.edit_message(content=f'{interaction.user.name}を{self.chaname}の{self.label}に変更しました', view=None)
+            await interaction.response.edit_message(content="変更しました", view=None)
+            await interaction.followup.send(content=f'{interaction.user.name}を{self.chaname}の{self.label}に変更しました')
 
+@tree.command(name="cha", description="キャラクターを変更するよ！")
+async def cha(interaction: discord.Interaction):
+    view = ui.View()
+    i = 0
+    for txt in metalist:
+        if i < 24:                                      #change
+            view.add_item(Charaname(txt, i))
+        elif i==24:
+            view.add_item(nextbutton("next", i))
+        i=i+1
+    await interaction.response.send_message("以下のボタンをクリックしてください：", view=view, ephemeral=True)
 @tree.command(name="cha", description="キャラクターを変更するよ！")
 async def cha(interaction: discord.Interaction):
     view = ui.View()

@@ -298,20 +298,9 @@ async def cha(interaction: discord.Interaction):
             view.add_item(nextbutton("next", i))
         i=i+1
     await interaction.response.send_message("以下のボタンをクリックしてください：", view=view, ephemeral=True)
-@tree.command(name="cha", description="キャラクターを変更するよ！")
-async def cha(interaction: discord.Interaction):
-    view = ui.View()
-    i = 0
-    for txt in metalist:
-        if i < 23:
-            view.add_item(Charaname(txt, i))
-        else:
-            view.add_item(nextbutton("next", i))
-        i+=1
-    await interaction.response.send_message("以下のボタンをクリックしてください：", view=view, ephemeral=True)
 
-@tree.command(name="list", description="キャラクターのリストを表示するよ！")
-async def list(interaction: discord.Interaction):
+@tree.command(name="charalist", description="キャラクターのリストを表示するよ！")
+async def charalist(interaction: discord.Interaction):
     await interaction.response.defer()
     #await interaction.followup.send(json_str)
     embed=discord.Embed(title="キャラリスト")  #metaar
@@ -325,11 +314,25 @@ async def list(interaction: discord.Interaction):
 
 @tree.command(name="now", description="今のキャラクターを表示するよ！")
 async def now(interaction: discord.Interaction):
-    #global speaker_id
     await interaction.response.defer()
-    await user_sep(interaction.user.name)
-    await interaction.followup.send(str(idlist[namelist[interaction.user.name]])+"だよ！")
-#client.run(TOKEN)
+    voicemembers = interaction.channel.voice_states
+    if not voicemembers:
+        await interaction.followup.send("誰もチャンネルに参加していないよ！")
+    else:
+        embed=discord.Embed(title="参加者のキャラはこうなっているよ！")
+        for memberid in voicemembers.keys():
+            user = await bot.fetch_user(memberid)
+            await user_sep(str(user))
+            embed.add_field(name=user.display_name, value=str(idlist[namelist[str(user)]]), inline=False)
+        await interaction.followup.send(embed=embed)
+
+@tree.command(name="voicelist", description="今このサーバーではみんなの声がこうなっているよ")
+async def voicelist(interaction:Interaction):
+    await interaction.response.defer()
+    embed = Embed(title="全員のリストだよ")
+    for key, value in namelist.items():
+        embed.add_field(name=key, value=value, inline=False)
+    await interaction.followup.send(embed=embed)
 
 class usersel(ui.UserSelect):
     def __init__(self):

@@ -104,7 +104,7 @@ def get_voice_client(channel_id: int) -> discord.VoiceClient | None:
 async def user_sep(user_name: str) -> str:
     global namelist 
     if namelist.get(user_name) == None:       
-        namelist.setdefault(user_name, random.randint(1, 51))
+        namelist.setdefault(user_name, random.randint(0, len(idlist)-1))
         with open('school.binaryfile', 'wb') as web:
             pickle.dump(namelist, web)
 

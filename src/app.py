@@ -331,7 +331,7 @@ async def voicelist(interaction:Interaction):
     await interaction.response.defer()
     embed = Embed(title="全員のリストだよ")
     for key, value in namelist.items():
-        embed.add_field(name=key, value=value, inline=False)
+        embed.add_field(name=key, value=str(idlist[value]), inline=False)
     await interaction.followup.send(embed=embed)
 
 class usersel(ui.UserSelect):

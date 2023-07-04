@@ -342,6 +342,56 @@ class usersel(ui.UserSelect):
         await user_sep(self.values[0].name)
         await interaction.response.edit_message(content=f'{self.values[0].name}は{str(idlist[namelist[self.values[0].name]])}だよ！', view=None)
 
+class delbutton(ui.Button):
+    def __init__(self, name):
+        super().__init__(label=str(name))
+        self.name=name
+
+    async def callback(self, interaction:Interaction):
+        if self.name == "next":
+            view=ui.View()
+            i=0
+            for key in namelist.keys():
+                i+=1
+                if i==24:
+                    view.add_item(delbutton("prev"))
+                elif 24 < i < 51:
+                    view.add_item(delbutton(key))
+            await interaction.response.edit_message(view=view)
+        elif self.name== "prev":
+            view = ui.View()
+            i=0
+            for key in namelist.keys():
+                i+=1
+                if i < 25:
+                    view.add_item(delbutton(key))
+                elif i == 25:
+                    view.add_item(delbutton("next"))
+            await interaction.response.edit_message(view=view)
+        else:
+            namelist.pop(self.name)
+            with open('school.binaryfile', 'wb') as web:
+                    pickle.dump(namelist, web)
+        await interaction.response.edit_message(content=f'{self.name}を削除したよ!', view=None)
+
+@tree.command(name="delete", description="消去用")
+async def delete(interaction:Interaction):
+    await interaction.response.defer(ephemeral=True)
+    if interaction.user.id==620830778145636358:
+        view = ui.View()
+        i=0
+        for key in namelist.keys():
+            i+=1
+            if i < 25:
+                view.add_item(delbutton(key))
+            elif i == 25:
+                print(key)
+                view.add_item(delbutton("next"))
+                break
+        await interaction.followup.send("消したい人を選んでね！", view=view)
+    else:
+        await interaction.followup.send("お前にその権限はない")
+
 @tree.command(name="sel", description="ほかの人のキャラクターを表示するよ！")
 async def sel(interaction:Interaction):    
     view = ui.View()

@@ -322,8 +322,8 @@ async def now(interaction: discord.Interaction):
         embed=discord.Embed(title="参加者のキャラはこうなっているよ！")
         for memberid in voicemembers.keys():
             user = await bot.fetch_user(memberid)
-            await user_sep(str(user))
-            embed.add_field(name=user.display_name, value=str(idlist[namelist[str(user)]]), inline=False)
+            await user_sep(str(user.name))
+            embed.add_field(name=user.display_name, value=str(idlist[namelist[str(user.name)]]), inline=False)
         await interaction.followup.send(embed=embed)
 
 @tree.command(name="voicelist", description="今このサーバーではみんなの声がこうなっているよ")

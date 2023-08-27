@@ -380,7 +380,7 @@ class delbutton(ui.Button):
 @tree.command(name="delete", description="消去用")
 async def delete(interaction:Interaction):
     await interaction.response.defer(ephemeral=True)
-    if interaction.user.id==620830778145636358:
+    if interaction.user.id==620830778145636358 or interaction.user.id==436414915755114507:
         view = ui.View()
         i=0
         for key in namelist.keys():

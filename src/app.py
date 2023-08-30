@@ -400,6 +400,25 @@ async def sel(interaction:Interaction):
     view = ui.View()
     view.add_item(usersel())
     await interaction.response.send_message("please select", view=view, ephemeral=True)   
+    
+@tree.command(name="onani", description="ボイスチャンネルに参加するよ")
+async def onani(interaction: Interaction):
+    await interaction.response.defer()
+    client: discord.VoiceClient | None = get_voice_client(
+        interaction.channel_id)
+
+    if client:
+        await client.disconnect()
+        print(f"join:{interaction.channel}")
+        connecting_channels.add(interaction.channel_id)
+        await interaction.followup.send('参加しなおしました')
+        try:
+            await interaction.channel.connect()
+        except Exception as e:
+            connecting_channels.remove(interaction.channel_id)
+            await interaction.followup.send(f"参加中に異常が発生しました\n```{e}```")
+    else:
+        await interaction.followup.send('ボイスチャンネルに参加していません')
 
 async def main():
     # start the client

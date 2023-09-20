@@ -1,9 +1,9 @@
 import discord
+import requests
+import json
 from discord import Embed, Interaction, ui
 import os
 from pathlib import Path
-from voicevox_core import VoicevoxCore, METAS
-core = VoicevoxCore(open_jtalk_dict_dir=Path("open_jtalk_dic_utf_8-1.11"))
 from pprint import pprint
 from discord.ext import commands
 import asyncio
@@ -14,6 +14,7 @@ import copy
 import pickle
 import os
 
+METAS = ""
 metas = str(METAS)
 namelist = {}
 metalist = []
@@ -83,16 +84,27 @@ async def replaceUserName(text: str) -> str:
         text = text.replace(word, '@' + userName)
     return text
 
-async def jtalk(t) -> str:
+async def vvox_test(text) -> str:
     global speaker_id
-    if not core.is_model_loaded(speaker_id):  # モデルが読み込まれていない場合
-            core.load_model(speaker_id)  # 指定したidのモデルを読み込む
-    wave_bytes = core.tts(t, speaker_id)  # 音声合成を行う
-    with open("output.mp3", "wb") as f:
-        f.write(wave_bytes)  # ファイルに書き出す
-        #client.get_guild(guild).voice_client.play(source)
-        #bot.get_guild(guild).voice_client.play(discord.FFmpegPCMAudio("output.mp3"))
-    return 'output.mp3'
+    host = "127.0.0.1"
+    port = 50021
+    params = (
+        ('text', text),
+        ('speaker', speaker_id),
+    )
+    query = requests.post(
+        f'http://{host}:{port}/audio_query',
+        params=params
+    )
+    synthesis = requests.post(
+        f'http://{host}:{port}/synthesis',
+        headers = {"Content-Type": "application/json"},
+        params = params,
+        data = json.dumps(query.json())
+    )
+    with open('output.mp3', mode='wb') as f:
+        f.write(synthesis.content)
+        return 'output.mp3'
 
 def get_voice_client(channel_id: int) -> discord.VoiceClient | None:
     for client in bot.voice_clients:
@@ -128,19 +140,22 @@ async def text_check(text: str, user_name: str) -> str:
         raise Exception("文字数が長すぎるよ")
     await user_sep(user_name)
     speaker_id = namelist[user_name]
-    filename = await jtalk(text)
+    filename = await vvox_test(text)
     if os.path.getsize(filename) > 10000000:
         raise Exception("再生時間が長すぎるよ")
     return text, filename
 
 async def listmk():
+    metas= requests.get('http://127.0.0.1:50021/speakers', headers = {"Content-Type": "application/json"}).content.decode()
+    METAS=json.loads(metas)
     global metaar
+    print(type(METAS))
     for meta in METAS:
-        metalist.append(meta.name)
-        for style in meta.styles:
-            stylist1.append(style.name + "  " + str(style.id))
-            stylist4.setdefault(style.id, style.name)
-            idlist[style.id] = meta.name + '  ' +style.name
+        metalist.append(meta["name"])
+        for style in meta["styles"]:
+            stylist1.append(style["name"] + "  " + str(style["id"]))
+            stylist4.setdefault(style["id"], style["name"])
+            idlist[style["id"]] = meta["name"] + '  ' +style["name"]
         st = copy.copy(stylist1)
         sts = copy.copy(stylist4)
         stylist2.append(st)
@@ -148,6 +163,7 @@ async def listmk():
         stylist1.clear()
         stylist4.clear()
 
+        
 @bot.event
 async def on_ready():
     global namelist 

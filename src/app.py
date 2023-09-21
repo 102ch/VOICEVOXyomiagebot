@@ -3,8 +3,6 @@ import requests
 import json
 from discord import Embed, Interaction, ui
 import os
-from pathlib import Path
-from pprint import pprint
 from discord.ext import commands
 import asyncio
 from collections import defaultdict, deque
@@ -12,7 +10,6 @@ import re
 import random
 import copy
 import pickle
-import os
 
 METAS = ""
 metas = str(METAS)
@@ -28,7 +25,7 @@ metaar = ""
 
 # speaker_id = 3
 
-TOKEN = os.environ["DISCORD_TOKEN"]
+TOKEN = "MTE1NDQ0NDYwMjMwOTM2NTg3MA.GSgxEq.-wh_0XfyhD8o1F5gfdsk6kRiQqpilaT87b9CJQ"
 intents = discord.Intents.all()
 client = discord.Client(intents=intents)
 queue_dict = defaultdict(deque)
@@ -51,6 +48,9 @@ tree = bot.tree
 voice = None
 volume = None
 currentChannel = None
+
+host = "voicevox-engine"
+port = 50021
 
 
 def enqueue(voice_client: discord.VoiceClient, guild: discord.guild, source, filename: str):
@@ -90,8 +90,6 @@ async def replaceUserName(text: str) -> str:
 
 async def vvox_test(text) -> str:
     global speaker_id
-    host = "127.0.0.1"
-    port = 50021
     params = (
         ('text', text),
         ('speaker', speaker_id),
@@ -154,11 +152,11 @@ async def text_check(text: str, user_name: str) -> str:
 
 
 async def listmk():
-    metas = requests.get('http://127.0.0.1:50021/speakers',
+    metas = requests.get(f'http://{host}:{port}/speakers',
                          headers={"Content-Type": "application/json"}).content.decode()
     METAS = json.loads(metas)
     global metaar
-    print(type(METAS))
+    # print(type(METAS))
     for meta in METAS:
         metalist.append(meta["name"])
         for style in meta["styles"]:

@@ -25,6 +25,9 @@ idlist = {}
 fixedlist = []
 metaar = ""
 
+host = os.environ["ENGINE_HOST"]
+port = os.environ["ENGINE_PORT"]
+
 #speaker_id = 3
 
 TOKEN = os.environ["DISCORD_TOKEN"]

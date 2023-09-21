@@ -5,3 +5,7 @@ services:
     build: "src"
     env_file: ./.env
     mem_limit: 4g
+  voicevox-engine:
+    image: voicevox/voicevox_engine:cpu-ubuntu20.04-latest
+    ports:
+      - "50021:50021"

@@ -25,7 +25,7 @@ metaar = ""
 
 # speaker_id = 3
 
-TOKEN = "MTE1NDQ0NDYwMjMwOTM2NTg3MA.GSgxEq.-wh_0XfyhD8o1F5gfdsk6kRiQqpilaT87b9CJQ"
+TOKEN = os.environ["DISCORD_TOKEN"]
 intents = discord.Intents.all()
 client = discord.Client(intents=intents)
 queue_dict = defaultdict(deque)
@@ -48,9 +48,6 @@ tree = bot.tree
 voice = None
 volume = None
 currentChannel = None
-
-host = "voicevox-engine"
-port = 50021
 
 
 def enqueue(voice_client: discord.VoiceClient, guild: discord.guild, source, filename: str):
@@ -156,7 +153,7 @@ async def listmk():
                          headers={"Content-Type": "application/json"}).content.decode()
     METAS = json.loads(metas)
     global metaar
-    # print(type(METAS))
+    print(type(METAS))
     for meta in METAS:
         metalist.append(meta["name"])
         for style in meta["styles"]:

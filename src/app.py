@@ -160,7 +160,6 @@ async def listmk():
                          headers={"Content-Type": "application/json"}).content.decode()
     METAS = json.loads(metas)
     global metaar
-    print(type(METAS))
     for meta in METAS:
         metalist.append(meta["name"])
         for style in meta["styles"]:

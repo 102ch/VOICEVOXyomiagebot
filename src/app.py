@@ -10,6 +10,7 @@ import re
 import random
 import copy
 import pickle
+import queue
 
 METAS = ""
 metas = str(METAS)
@@ -52,22 +53,23 @@ voice = None
 volume = None
 currentChannel = None
 
+playAudioQueue = queue.Queue()
+
 
 def enqueue(voice_client: discord.VoiceClient, guild: discord.guild, source, filename: str):
-    queue = queue_dict[guild.id]
-    queue.append([source, filename])
+    global playAudioQueue
+    playAudioQueue.put([source, filename])
     if not voice_client:
         return
     if not voice_client.is_playing():
-        play(voice_client, queue)
-
-
-def play(voice_client: discord.VoiceClient, queue: deque):
-    if not queue or voice_client.is_playing():
+        play(voice_client)
+        
+def play(voice_client: discord.VoiceClient):
+    global playAudioQueue
+    if playAudioQueue.empty():
         return
-    source = queue.popleft()
-    # os.remove(source[1])
-    voice_client.play(source[0], after=lambda e: play(voice_client, queue))
+    source, filename = playAudioQueue.get()
+    voice_client.play(source, after=lambda e: [os.remove(filename), play(voice_client)])
 
 
 def replaceStamp(text: str) -> str:
@@ -104,9 +106,11 @@ async def vvox_test(text) -> str:
         params=params,
         data=json.dumps(query.json())
     )
-    with open('output.mp3', mode='wb') as f:
+    # make random file name
+    filename = ''.join([random.choice('abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789') for i in range(10)]) + '.mp3'
+    with open(filename, mode='wb') as f:
         f.write(synthesis.content)
-        return 'output.mp3'
+        return filename
 
 
 def get_voice_client(channel_id: int) -> discord.VoiceClient | None:
@@ -207,6 +211,8 @@ async def on_message(message: discord.Message):
 
     if not message.guild.voice_client:
         return await bot.process_commands(message)
+
+
 
     enqueue(message.guild.voice_client, message.guild,
             discord.FFmpegPCMAudio(filename), filename)

@@ -156,11 +156,10 @@ async def text_check(text: str, user_name: str) -> str:
 
 
 async def listmk():
-    metas = requests.get(f'http://{host}:{port}/speakers',
+    speakerResponse:requests.Response = requests.get(f'http://{host}:{port}/speakers',
                          headers={"Content-Type": "application/json"}).content.decode()
-    METAS = json.loads(metas)
-    global metaar
-    for meta in METAS:
+    speakerList = json.loads(speakerResponse)
+    for meta in speakerList:
         metalist.append(meta["name"])
         for style in meta["styles"]:
             stylist1.append(style["name"] + "  " + str(style["id"]))
